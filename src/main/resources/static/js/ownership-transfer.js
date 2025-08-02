@@ -3,55 +3,60 @@ document.addEventListener('DOMContentLoaded', function() {
     loadTransfers();
     
     // Form submission handlers
-    document.getElementById('initiateTransferForm')?.addEventListener('submit', async function(e) {
+    document.getElementById('initiateTransferForm')?.addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(this);
-        const transferData = Object.fromEntries(formData.entries());
-
-        try {
-            const response = await fetch('/api/ownership-transfers/initiate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(transferData)
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                showAlert('Transfer initiated successfully!', 'success');
-                document.getElementById('initiateTransferResponse').textContent = 
-                    `Transfer initiated successfully!\n\n` + 
-                    `Transaction Hash: ${result.transactionHash}`;
-                loadTransfers();
-                this.reset();
-            } else {
-                showAlert(result.message || 'Transfer initiation failed.', 'danger');
-            }
-        } catch (error) {
-            showAlert('An error occurred while initiating the transfer.', 'danger');
-            console.error('Error initiating transfer:', error);
-        }
+        
+        // Simulate API call
+        showAlert('Transfer initiated successfully!', 'success');
+        setTimeout(() => {
+            document.getElementById('initiateTransferResponse').textContent = 
+                'Transfer initiated successfully!\n\n' + 
+                JSON.stringify(Object.fromEntries(formData), null, 2);
+            
+            // Refresh the transfers table
+            loadTransfers();
+            this.reset();
+        }, 1000);
+    });
+    
+    document.getElementById('confirmTransferForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        // Simulate API call
+        showAlert('Transfer confirmed successfully!', 'success');
+        setTimeout(() => {
+            document.getElementById('confirmTransferResponse').textContent = 
+                'Transfer confirmed successfully!\n\n' + 
+                JSON.stringify(Object.fromEntries(formData), null, 2);
+            
+            // Refresh the transfers table
+            loadTransfers();
+            this.reset();
+        }, 1000);
     });
     
     // View transfer details button handler
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('view-transfer-btn')) {
-            const surveyNumber = e.target.getAttribute('data-survey-number');
-            viewTransferDetails(surveyNumber);
+            const transferId = e.target.getAttribute('data-id');
+            viewTransferDetails(transferId);
         }
     });
 });
 
-async function loadTransfers(page = 1, pageSize = 10, filters = {}) {
-    try {
-        const response = await fetch('/api/ownership-transfers/all');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const transfers = await response.json();
-        const totalTransfers = transfers.length;
+function loadTransfers(page = 1, pageSize = 10, filters = {}) {
+    // Simulate API response
+    const totalTransfers = 245;
+    const transfers = Array.from({length: pageSize}, (_, i) => ({
+        id: `T-${new Date().getFullYear()}-${1000 + i + (page-1)*pageSize}`,
+        surveyNumber: `L-${Math.floor(Math.random() * 1000) + 1000}`,
+        fromOwner: `0x${Math.random().toString(16).substr(2, 8)}...${Math.random().toString(16).substr(2, 4)}`,
+        toOwner: `0x${Math.random().toString(16).substr(2, 8)}...${Math.random().toString(16).substr(2, 4)}`,
+        initiatedDate: new Date(Date.now() - Math.floor(Math.random() * 1000*60*60*24*30)).toISOString(),
+        status: ['Pending', 'Completed', 'Rejected'][Math.floor(Math.random() * 3)]
+    }));
     
     // Update UI
     const tableBody = document.getElementById('transferTableBody');
@@ -65,7 +70,7 @@ async function loadTransfers(page = 1, pageSize = 10, filters = {}) {
                 <td>${formatDate(transfer.initiatedDate)}</td>
                 <td><span class="badge bg-${transfer.status === 'Completed' ? 'success' : transfer.status === 'Pending' ? 'warning' : 'danger'}">${transfer.status}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-outline-primary view-transfer-btn" data-survey-number="${transfer.surveyNumber}">
+                    <button class="btn btn-sm btn-outline-primary view-transfer-btn" data-id="${transfer.id}">
                         <i class="fas fa-eye"></i> View
                     </button>
                 </td>
@@ -85,13 +90,23 @@ async function loadTransfers(page = 1, pageSize = 10, filters = {}) {
     }
 }
 
-async function viewTransferDetails(surveyNumber) {
-    try {
-        const response = await fetch(`/api/ownership-transfers/status/${surveyNumber}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const transferDetails = await response.json();
+function viewTransferDetails(transferId) {
+    // Simulate API call to get transfer details
+    const transferDetails = {
+        id: transferId,
+        surveyNumber: `L-${Math.floor(Math.random() * 1000) + 1000}`,
+        fromOwner: `0x${Math.random().toString(16).substr(2, 8)}...${Math.random().toString(16).substr(2, 4)}`,
+        toOwner: `0x${Math.random().toString(16).substr(2, 8)}...${Math.random().toString(16).substr(2, 4)}`,
+        initiatedDate: new Date(Date.now() - Math.floor(Math.random() * 1000*60*60*24*30)).toISOString(),
+        completedDate: new Date(Date.now() - Math.floor(Math.random() * 1000*60*60*24*7)).toISOString(),
+        status: ['Pending', 'Completed', 'Rejected'][Math.floor(Math.random() * 3)],
+        txHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        reason: ['Sale', 'Inheritance', 'Gift', 'Court Order'][Math.floor(Math.random() * 4)],
+        documents: [
+            { name: 'Transfer Agreement', date: new Date(Date.now() - Math.floor(Math.random() * 1000*60*60*24*7)).toISOString() },
+            { name: 'Identity Proof', date: new Date(Date.now() - Math.floor(Math.random() * 1000*60*60*24*14)).toISOString() }
+        ]
+    };
     
     // Show modal with transfer details
     const modal = new bootstrap.Modal(document.getElementById('transferDetailsModal'));

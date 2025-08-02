@@ -2,14 +2,14 @@ package com.aditya.bro.userback.service;
 
 import com.aditya.bro.userback.dto.LandDTO;
 import com.aditya.bro.userback.exception.ResourceNotFoundException;
-import com.aditya.bro.land.entity.LandParcel; // Changed import
-import com.aditya.bro.land.repository.LandRepository; // Changed import
-import com.aditya.bro.userback.model.User;
+import com.aditya.bro.userback.model.Land;
+import com.aditya.bro.userback.repository.LandRepository;
 import com.aditya.bro.userback.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime; // Changed from LocalDate
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,13 +27,13 @@ public class LandService {
     }
 
     public LandDTO getLandById(String id) {
-        LandParcel land = landRepository.findById(id)
+        Land land = landRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Land not found with id: " + id));
         return convertToDto(land);
     }
 
     public LandDTO getLandBySurveyNumber(String surveyNumber) {
-        LandParcel land = landRepository.findBySurveyNumber(surveyNumber)
+        Land land = landRepository.findBySurveyNumber(surveyNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Land not found with survey number: " + surveyNumber));
         return convertToDto(land);
     }
@@ -73,15 +73,15 @@ public class LandService {
     }
 
     public LandDTO createLand(LandDTO landDTO) {
-        LandParcel land = modelMapper.map(landDTO, LandParcel.class); // Use LandParcel
-        land.setCreatedDate(LocalDateTime.now()); // Changed from setRegistrationDate
+        Land land = convertToEntity(landDTO);
+        land.setRegistrationDate(LocalDate.now());
         land.setStatus("AVAILABLE");
-        LandParcel savedLand = landRepository.save(land);
+        Land savedLand = landRepository.save(land);
 
         // Add land to user's owned lands
         if (savedLand.getCurrentOwnerId() != null) {
             userRepository.findById(savedLand.getCurrentOwnerId()).ifPresent(user -> {
-                user.getOwnedLands().add(savedLand.getSurveyNumber()); // Use getSurveyNumber
+                user.getOwnedLands().add(savedLand.getId());
                 userRepository.save(user);
             });
         }
@@ -90,16 +90,16 @@ public class LandService {
     }
 
     public LandDTO updateLand(String id, LandDTO landDTO) {
-        LandParcel existingLand = landRepository.findById(id)
+        Land existingLand = landRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Land not found with id: " + id));
 
         modelMapper.map(landDTO, existingLand);
-        LandParcel updatedLand = landRepository.save(existingLand);
+        Land updatedLand = landRepository.save(existingLand);
         return convertToDto(updatedLand);
     }
 
     public void deleteLand(String id) {
-        LandParcel land = landRepository.findById(id)
+        Land land = landRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Land not found with id: " + id));
 
         // Remove land from user's owned lands
@@ -113,9 +113,9 @@ public class LandService {
         landRepository.deleteById(id);
     }
 
-    private LandDTO convertToDto(LandParcel land) {
+    private LandDTO convertToDto(Land land) {
         LandDTO landDTO = modelMapper.map(land, LandDTO.class);
-        landDTO.setRegistrationDate(land.getCreatedDate().toString()); // Changed from getRegistrationDate
+        landDTO.setRegistrationDate(land.getRegistrationDate().toString());
 
         // Set owner email if available
         if (land.getCurrentOwnerId() != null) {
@@ -127,7 +127,7 @@ public class LandService {
         return landDTO;
     }
 
-    private LandParcel convertToEntity(LandDTO landDTO) {
-        return modelMapper.map(landDTO, LandParcel.class);
+    private Land convertToEntity(LandDTO landDTO) {
+        return modelMapper.map(landDTO, Land.class);
     }
 }

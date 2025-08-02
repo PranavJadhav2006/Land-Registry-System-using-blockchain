@@ -1,4 +1,3 @@
-/*
 package com.aditya.bro.userback.model;
 
 import lombok.Data;
@@ -14,7 +13,7 @@ public class Land {
     @Id
     private String id;
 
-    @Indexed(unique = true, sparse = true)
+    @Indexed(unique = true)
     private String surveyNumber;
 
     private String title;
@@ -28,7 +27,13 @@ public class Land {
     private List<String> imageUrls;
     private List<Document> documents;
     private List<Transaction> transactionHistory;
-    
+    private GeoLocation coordinates;
+
+    @Data
+    public static class GeoLocation {
+        private double latitude;
+        private double longitude;
+    }
 
     @Data
     public static class Document {
@@ -37,4 +42,3 @@ public class Land {
         private String type;
     }
 }
-*/

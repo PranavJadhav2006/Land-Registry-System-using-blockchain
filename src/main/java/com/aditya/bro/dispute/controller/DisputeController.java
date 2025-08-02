@@ -41,21 +41,5 @@ public class DisputeController {
         private String reason;
         private String raisedBy;
         private List<String> evidenceUrls;
-
-        public String getSurveyNumber() {
-            return surveyNumber;
-        }
-
-        public String getReason() {
-            return reason;
-        }
-
-        public String getRaisedBy() {
-            return raisedBy;
-        }
-
-        public List<String> getEvidenceUrls() {
-            return evidenceUrls;
-        }
     }
 }

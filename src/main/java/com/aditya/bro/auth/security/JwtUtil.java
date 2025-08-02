@@ -3,21 +3,18 @@ package com.aditya.bro.auth.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
-    private final long expiration = 1000 * 60 * 60 * 24; // 24 hours
+    private final String secret = "your-256-bit-secret-key-goes-here-and-must-be-long"; // Must be at least 256-bit
+    private final long expiration = 1000 * 60 * 60; // 1 hour
 
-    public SecretKey getSigningKey() {
+    private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }

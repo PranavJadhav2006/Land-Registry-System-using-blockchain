@@ -6,7 +6,6 @@ import com.aditya.bro.land.history.HistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,9 +16,7 @@ public class LandService {
     private final LandRepository landRepository;
     private final HistoryService historyService;
 
-    public LandParcel registerLand(LandParcel land, String ownerId) {
-        land.setCurrentOwnerId(ownerId);
-        land.setCreatedDate(LocalDateTime.now());
+    public LandParcel registerLand(LandParcel land) {
         return landRepository.save(land);
     }
 
@@ -28,7 +25,7 @@ public class LandService {
     }
 
     public List<LandParcel> listLands(String owner, String location, String status) {
-        if (owner != null) return landRepository.findByCurrentOwnerId(owner);
+        if (owner != null) return landRepository.findByOwnerWallet(owner);
         if (location != null) return landRepository.findByLocation(location);
         if (status != null) return landRepository.findByStatus(status);
         return landRepository.findAll();
@@ -37,11 +34,7 @@ public class LandService {
     public LandParcel addDocument(String surveyNumber, String documentHash) {
         LandParcel land = landRepository.findById(surveyNumber)
                 .orElseThrow(() -> new RuntimeException("Land not found"));
-        LandParcel.Document document = new LandParcel.Document();
-        document.setName("Uploaded Document"); // You might want to get a real name
-        document.setUrl(documentHash);
-        document.setType("IPFS"); // Or determine type based on file extension
-        land.getDocuments().add(document);
+        land.getDocumentHashes().add(documentHash);
         return landRepository.save(land);
     }
 

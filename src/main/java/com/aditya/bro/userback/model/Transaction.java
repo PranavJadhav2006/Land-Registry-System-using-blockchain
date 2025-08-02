@@ -18,40 +18,4 @@ public class Transaction {
     private double amount;
     private String status;
     private String notes;
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public void setTransactionDate(LocalDateTime transactionDate) {
-        this.transactionDate = transactionDate;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getLandId() {
-        return landId;
-    }
-
-    public String getFromUserId() {
-        return fromUserId;
-    }
-
-    public String getToUserId() {
-        return toUserId;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
 }
