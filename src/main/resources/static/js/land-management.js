@@ -3,21 +3,36 @@ document.addEventListener('DOMContentLoaded', function() {
     loadLands();
     
     // Form submission handlers
-    document.getElementById('registerLandForm')?.addEventListener('submit', function(e) {
+    document.getElementById('registerLandForm')?.addEventListener('submit', async function(e) {
         e.preventDefault();
         const formData = new FormData(this);
-        
-        // Simulate API call
-        showAlert('Land registration submitted successfully!', 'success');
-        setTimeout(() => {
-            document.getElementById('registerLandResponse').textContent = 
-                'Land registered successfully!\n\n' + 
-                JSON.stringify(Object.fromEntries(formData), null, 2);
-            
-            // Refresh the lands table
-            loadLands();
-            this.reset();
-        }, 1000);
+        const landData = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch('/api/lands/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(landData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showAlert('Land registration submitted successfully!', 'success');
+                document.getElementById('registerLandResponse').textContent = 
+                    `Land registered successfully!\n\n` + 
+                    `Transaction Hash: ${result.transactionHash}`;
+                loadLands();
+                this.reset();
+            } else {
+                showAlert(result.message || 'Land registration failed.', 'danger');
+            }
+        } catch (error) {
+            showAlert('An error occurred while registering the land.', 'danger');
+            console.error('Error registering land:', error);
+        }
     });
     
     document.getElementById('listLandsForm')?.addEventListener('submit', function(e) {

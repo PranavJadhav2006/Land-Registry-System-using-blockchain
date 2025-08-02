@@ -36,5 +36,21 @@ public class DocumentController {
         private String documentName;
         private String url;
         private String uploadedBy;
+
+        public String getSurveyNumber() {
+            return surveyNumber;
+        }
+
+        public String getDocumentName() {
+            return documentName;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public String getUploadedBy() {
+            return uploadedBy;
+        }
     }
 }

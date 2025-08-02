@@ -1,7 +1,7 @@
 package com.aditya.bro.auth.service;
 
-import com.aditya.bro.auth.entity.User;
-import com.aditya.bro.auth.repository.UserRepository;
+import com.aditya.bro.userback.model.User;
+import com.aditya.bro.userback.repository.UserRepository;
 import com.aditya.bro.auth.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

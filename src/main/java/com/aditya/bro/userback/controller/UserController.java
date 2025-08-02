@@ -28,6 +28,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserByEmail(email));
     }
 
+    @GetMapping("/wallet/{walletAddress}")
+    public ResponseEntity<UserDTO> getUserByWalletAddress(@PathVariable String walletAddress) {
+        return ResponseEntity.ok(userService.getUserByWalletAddress(walletAddress));
+    }
+
     @PostMapping
     public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userService.createUser(userDTO));

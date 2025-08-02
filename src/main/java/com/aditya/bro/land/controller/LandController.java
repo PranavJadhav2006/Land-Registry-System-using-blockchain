@@ -10,6 +10,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @RestController
 @RequestMapping("/api/land")
@@ -20,8 +24,16 @@ public class LandController {
     private final IPFSService ipfsService;
 
     @PostMapping("/register")
-    public LandParcel registerLand(@RequestBody LandParcel land) {
-        return landService.registerLand(land);
+    public LandParcel registerLand(@RequestBody LandParcel land, @AuthenticationPrincipal Jwt jwt) {
+        String ownerId = jwt.getSubject();
+        return landService.registerLand(land, ownerId);
+    }
+
+    @PostMapping("/transfer")
+    public Map<String, String> transferLand(@RequestBody Map<String, String> transferData) {
+        // Add your land transfer logic here
+        System.out.println(transferData);
+        return Map.of("transactionHash", "0xabcdef1234567890");
     }
 
     @GetMapping("/{surveyNumber}")

@@ -9,4 +9,16 @@ public class PromptPayload {
     private String conversationId;  // Optional
     private String documentType;
     private List<String> questions;
+
+    public String getChatPrompt() {
+        return chatPrompt;
+    }
+
+    public String getDocumentType() {
+        return documentType;
+    }
+
+    public List<String> getQuestions() {
+        return questions;
+    }
 }

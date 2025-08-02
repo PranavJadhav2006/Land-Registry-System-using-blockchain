@@ -2,11 +2,11 @@ package com.aditya.bro.userback.service;
 
 import com.aditya.bro.userback.dto.TransactionDTO;
 import com.aditya.bro.userback.exception.ResourceNotFoundException;
-import com.aditya.bro.userback.model.Land;
-import com.aditya.bro.userback.model.Transaction;
+import com.aditya.bro.land.entity.LandParcel; // Changed import
+import com.aditya.bro.land.entity.LandParcel.Transaction; // Changed import
 import com.aditya.bro.userback.model.User;
-import com.aditya.bro.userback.repository.LandRepository;
-import com.aditya.bro.userback.repository.UserRepository;
+import com.aditya.bro.land.repository.LandRepository; // Changed import
+import com.aditya.bro.auth.repository.UserRepository; // Changed import
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class TransactionService {
 
     public TransactionDTO initiateTransfer(TransactionDTO transactionDTO) {
         // Validate land exists
-        Land land = landRepository.findById(transactionDTO.getLandId())
+        LandParcel land = landRepository.findBySurveyNumber(transactionDTO.getLandId())
                 .orElseThrow(() -> new ResourceNotFoundException("Land not found with id: " + transactionDTO.getLandId()));
 
         // Validate from user exists
@@ -38,9 +38,9 @@ public class TransactionService {
         // Create transaction
         Transaction transaction = new Transaction();
         transaction.setId(generateTransactionId());
-        transaction.setLandId(land.getId());
-        transaction.setFromUserId(fromUser.getId());
-        transaction.setToUserId(toUser.getId());
+        transaction.setLandId(land.getSurveyNumber()); // Use surveyNumber as ID
+        transaction.setFrom(fromUser.getId()); // Use from for fromUser
+        transaction.setTo(toUser.getId()); // Use to for toUser
         transaction.setTransactionDate(LocalDateTime.now());
         transaction.setType(transactionDTO.getType());
         transaction.setAmount(transactionDTO.getAmount());
@@ -48,6 +48,9 @@ public class TransactionService {
         transaction.setNotes(transactionDTO.getNotes());
 
         // Add transaction to land's history
+        if (land.getTransactionHistory() == null) {
+            land.setTransactionHistory(new java.util.ArrayList<>());
+        }
         land.getTransactionHistory().add(transaction);
         landRepository.save(land);
 
@@ -56,38 +59,38 @@ public class TransactionService {
 
     public List<TransactionDTO> getTransactionsByUser(String userId) {
         // Get all lands where user is involved
-        List<Land> relevantLands = landRepository.findLandsByUserInvolvement(userId);
+        List<LandParcel> relevantLands = landRepository.findByCurrentOwnerId(userId); // Changed method
 
         return relevantLands.stream()
                 .flatMap(land -> land.getTransactionHistory().stream()
-                        .filter(t -> userId.equals(t.getFromUserId()) || userId.equals(t.getToUserId())))
+                        .filter(t -> userId.equals(t.getFrom()) || userId.equals(t.getTo()))) // Use getFrom/getTo
                 .map(t -> {
-                    User fromUser = t.getFromUserId() != null ?
-                            userRepository.findById(t.getFromUserId()).orElse(null) : null;
-                    User toUser = t.getToUserId() != null ?
-                            userRepository.findById(t.getToUserId()).orElse(null) : null;
-                    return convertToDto(t, landRepository.findById(t.getLandId()).orElse(null), fromUser, toUser);
+                    User fromUser = t.getFrom() != null ?
+                            userRepository.findById(t.getFrom()).orElse(null) : null; // Use getFrom
+                    User toUser = t.getTo() != null ?
+                            userRepository.findById(t.getTo()).orElse(null) : null; // Use getTo
+                    return convertToDto(t, landRepository.findBySurveyNumber(t.getLandId()).orElse(null), fromUser, toUser); // Use findBySurveyNumber
                 })
                 .collect(Collectors.toList());
     }
 
     public List<TransactionDTO> getTransactionsByLand(String landId) {
-        Land land = landRepository.findById(landId)
+        LandParcel land = landRepository.findBySurveyNumber(landId) // Use findBySurveyNumber
                 .orElseThrow(() -> new ResourceNotFoundException("Land not found with id: " + landId));
 
         return land.getTransactionHistory().stream()
                 .map(t -> {
-                    User fromUser = t.getFromUserId() != null ?
-                            userRepository.findById(t.getFromUserId()).orElse(null) : null;
-                    User toUser = t.getToUserId() != null ?
-                            userRepository.findById(t.getToUserId()).orElse(null) : null;
+                    User fromUser = t.getFrom() != null ?
+                            userRepository.findById(t.getFrom()).orElse(null) : null; // Use getFrom
+                    User toUser = t.getTo() != null ?
+                            userRepository.findById(t.getTo()).orElse(null) : null; // Use getTo
                     return convertToDto(t, land, fromUser, toUser);
                 })
                 .collect(Collectors.toList());
     }
 
     public TransactionDTO updateTransactionStatus(String landId, String transactionId, String status) {
-        Land land = landRepository.findById(landId)
+        LandParcel land = landRepository.findBySurveyNumber(landId) // Use findBySurveyNumber
                 .orElseThrow(() -> new ResourceNotFoundException("Land not found with id: " + landId));
 
         Transaction transaction = land.getTransactionHistory().stream()
@@ -99,20 +102,20 @@ public class TransactionService {
 
         // If transaction is completed, transfer ownership
         if ("COMPLETED".equals(status)) {
-            land.setCurrentOwnerId(transaction.getToUserId());
+            land.setCurrentOwnerId(transaction.getTo()); // Use getTo
 
             // Update user's owned lands
-            if (transaction.getFromUserId() != null) {
-                userRepository.findById(transaction.getFromUserId()).ifPresent(fromUser -> {
-                    fromUser.getOwnedLands().removeIf(landId::equals);
+            if (transaction.getFrom() != null) { // Use getFrom
+                userRepository.findById(transaction.getFrom()).ifPresent(fromUser -> { // Use getFrom
+                    fromUser.getOwnedLands().removeIf(land.getSurveyNumber()::equals); // Use getSurveyNumber
                     userRepository.save(fromUser);
                 });
             }
 
-            if (transaction.getToUserId() != null) {
-                userRepository.findById(transaction.getToUserId()).ifPresent(toUser -> {
-                    if (!toUser.getOwnedLands().contains(landId)) {
-                        toUser.getOwnedLands().add(landId);
+            if (transaction.getTo() != null) { // Use getTo
+                userRepository.findById(transaction.getTo()).ifPresent(toUser -> { // Use getTo
+                    if (!toUser.getOwnedLands().contains(land.getSurveyNumber())) { // Use getSurveyNumber
+                        toUser.getOwnedLands().add(land.getSurveyNumber());
                         userRepository.save(toUser);
                     }
                 });
@@ -124,21 +127,21 @@ public class TransactionService {
         return convertToDto(
                 transaction,
                 land,
-                transaction.getFromUserId() != null ?
-                        userRepository.findById(transaction.getFromUserId()).orElse(null) : null,
-                transaction.getToUserId() != null ?
-                        userRepository.findById(transaction.getToUserId()).orElse(null) : null
+                transaction.getFrom() != null ?
+                        userRepository.findById(transaction.getFrom()).orElse(null) : null, // Use getFrom
+                transaction.getTo() != null ?
+                        userRepository.findById(transaction.getTo()).orElse(null) : null // Use getTo
         );
     }
 
-    private TransactionDTO convertToDto(Transaction transaction, Land land, User fromUser, User toUser) {
+    private TransactionDTO convertToDto(Transaction transaction, LandParcel land, User fromUser, User toUser) {
         TransactionDTO dto = modelMapper.map(transaction, TransactionDTO.class);
         if (transaction.getTransactionDate() != null) {
             dto.setTransactionDate(transaction.getTransactionDate().toString());
         }
 
         if (land != null) {
-            dto.setLandId(land.getId());
+            dto.setLandId(land.getSurveyNumber()); // Use getSurveyNumber
             dto.setLandTitle(land.getTitle());
         }
 

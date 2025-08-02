@@ -7,11 +7,10 @@ import java.util.List;
 @Data
 public class UserDTO {
     private String id;
-    private String firstName;
-    private String lastName;
+    private String username;
     private String email;
-    private String phone;
-    private String address;
+    private String walletAddress;
+    private String password;
     private String registrationDate;
     private int totalLands;
     private boolean verified;

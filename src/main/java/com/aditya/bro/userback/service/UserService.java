@@ -29,6 +29,12 @@ public class UserService {
         return convertToDto(user);
     }
 
+    public UserDTO getUserByWalletAddress(String walletAddress) {
+        User user = userRepository.findByWalletAddress(walletAddress) // Changed to use findByWalletAddress
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with wallet address: " + walletAddress));
+        return convertToDto(user);
+    }
+
     public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::convertToDto)
@@ -52,7 +58,7 @@ public class UserService {
     }
 
     public UserDTO createUser(UserDTO userDTO) {
-        User user = convertToEntity(userDTO);
+        User user = modelMapper.map(userDTO, User.class); // Use User entity
         user.setRegistrationDate(LocalDateTime.now());
         User savedUser = userRepository.save(user);
         return convertToDto(savedUser);
@@ -60,7 +66,7 @@ public class UserService {
 
     private UserDTO convertToDto(User user) {
         UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-        userDTO.setRegistrationDate(user.getRegistrationDate().toString());
+        userDTO.setRegistrationDate(user.getRegistrationDate() != null ? user.getRegistrationDate().toString() : null); // Handle null
         userDTO.setTotalLands(user.getOwnedLands() != null ? user.getOwnedLands().size() : 0);
         return userDTO;
     }

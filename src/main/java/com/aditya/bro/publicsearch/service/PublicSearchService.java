@@ -23,6 +23,6 @@ public class PublicSearchService {
     }
 
     public List<LandParcel> searchByOwnerWallet(String ownerWallet) {
-        return landRepository.findByOwnerWallet(ownerWallet);
+        return landRepository.findByCurrentOwnerId(ownerWallet);
     }
 }

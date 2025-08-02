@@ -16,4 +16,24 @@ public class DocumentRecord {
     private String url;
     private String uploadedBy;
     private LocalDateTime uploadedAt;
+
+    public void setSurveyNumber(String surveyNumber) {
+        this.surveyNumber = surveyNumber;
+    }
+
+    public void setDocumentName(String documentName) {
+        this.documentName = documentName;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setUploadedBy(String uploadedBy) {
+        this.uploadedBy = uploadedBy;
+    }
+
+    public void setUploadedAt(LocalDateTime uploadedAt) {
+        this.uploadedAt = uploadedAt;
+    }
 }

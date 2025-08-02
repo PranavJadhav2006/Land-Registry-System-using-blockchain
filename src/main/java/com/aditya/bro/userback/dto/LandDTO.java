@@ -1,5 +1,5 @@
 package com.aditya.bro.userback.dto;
-import com.aditya.bro.userback.model.Land;
+
 import lombok.Data;
 import java.util.List;
 
@@ -16,6 +16,7 @@ public class LandDTO {
     private String registrationDate;
     private String status;
     private List<String> imageUrls;
-    private List<Land.Document> documents;
-    private Land.GeoLocation coordinates;
+    private List<com.aditya.bro.land.entity.LandParcel.Document> documents;
+    private List<com.aditya.bro.land.entity.LandParcel.Transaction> transactionHistory;
+    
 }

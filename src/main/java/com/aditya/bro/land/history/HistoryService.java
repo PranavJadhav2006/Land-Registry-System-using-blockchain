@@ -24,7 +24,7 @@ public class HistoryService {
         landRepository.findById(surveyNumber).ifPresent(land -> {
             history.add(String.format("Land parcel created on %s",
                     land.getCreatedDate().format(formatter)));
-            history.add(String.format("Owned by %s", land.getOwnerWallet()));
+            history.add(String.format("Owned by %s", land.getCurrentOwnerId()));
             // Add more history items as needed
         });
         return history;
